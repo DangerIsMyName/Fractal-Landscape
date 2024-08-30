@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractal Landscape</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas });
+        renderer.setSize(width, height);
+
+        const geometry = new THREE.PlaneGeometry(100, 100, 128, 128);
+        const material = new THREE.MeshBasicMaterial({ color: 0x8B4513, side: THREE.DoubleSide, wireframe: true });
+        const plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+        camera.position.z = 50;
+
+        // Generate fractal terrain
+        function generateFractalTerrain() {
+            const vertices = geometry.attributes.position.array;
+            const size = 100;
+            const scale = 5;
+
+            function perlin(x, y) {
+                // Simplex noise or other noise functions can be used here
+                return Math.sin(x * 0.1) * Math.cos(y * 0.1) * scale;
+            }
+
+            for (let i = 0; i < vertices.length; i += 3) {
+                const x = (i / 3 % 129) - 64;
+                const y = Math.floor(i / 3 / 129) - 64;
+                vertices[i + 2] = perlin(x, y); // z = height
+            }
+            geometry.attributes.position.needsUpdate = true;
+        }
+
+        generateFractalTerrain();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    </script>
+</body>
+</html>
